@@ -1,55 +1,75 @@
-<script>
-    // --- CONFIGURATION ---
-    // REMPLACE LE TEXTE ENTRE GUILLEMETS PAR TON URL /exec
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZbzfkZI3rJrAclpute5932Melnxe0AlEbYle74dIXOPuXMpqd_wQNiXr-WWjdkUNlfA/exec"; 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Mariage 📸</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #fdfaf6; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; }
+        h1 { color: #d4a373; font-size: 24px; }
+        .btn { background: #d4a373; color: white; border: none; padding: 15px 25px; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; }
+        #status { margin-top: 20px; font-size: 14px; color: #666; }
+        #preview { width: 100%; margin-top: 20px; border-radius: 10px; display: none; }
+    </style>
+</head>
+<body>
 
-    const captureBtn = document.getElementById('captureBtn');
-    const cameraInput = document.getElementById('cameraInput');
-    const status = document.getElementById('status');
-    const loader = document.getElementById('loader');
-    const preview = document.getElementById('preview');
+    <div class="card">
+        <h1>✨ Souvenir du Mariage ✨</h1>
+        <p>Prenez une photo pour l'album !</p>
+        
+        <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display: none;">
+        <button class="btn" id="captureBtn">📸 PRENDRE UNE PHOTO</button>
+        
+        <img id="preview" src="">
+        <div id="status"></div>
+    </div>
 
-    captureBtn.addEventListener('click', () => {
-        cameraInput.click();
-    });
+    <script>
+        // --- CONFIGURATION ---
+        // COLLE TON URL ENTRE LES GUILLEMETS CI-DESSOUS
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZbzfkZI3rJrAclpute5932Melnxe0AlEbYle74dIXOPuXMpqd_wQNiXr-WWjdkUNlfA/exec"; 
 
-    cameraInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (!file) return;
+        const captureBtn = document.getElementById('captureBtn');
+        const cameraInput = document.getElementById('cameraInput');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('preview');
 
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = 'block';
-        status.innerText = "Envoi en cours vers le Drive... 🚀";
-        loader.style.display = 'block';
-        captureBtn.style.display = 'none';
+        captureBtn.onclick = () => cameraInput.click();
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function() {
-            const base64Data = reader.result.split(',')[1];
-            
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', 
-                body: JSON.stringify({
-                    base64: base64Data,
-                    name: "photo_" + Date.now() + ".jpg"
+        cameraInput.onchange = function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            status.innerText = "Envoi vers le Drive... ⏳";
+            captureBtn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function() {
+                const base64Data = reader.result.split(',')[1];
+                
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        base64: base64Data,
+                        name: "mariage_" + Date.now() + ".jpg"
+                    })
                 })
-            })
-            .then(() => {
-                status.innerHTML = "✅ Photo bien reçue !<br>Elle est dans l'album.";
-                loader.style.display = 'none';
-                setTimeout(() => {
-                    status.innerText = "";
-                    preview.style.display = 'none';
-                    captureBtn.style.display = 'inline-block';
-                }, 4000);
-            })
-            .catch(err => {
-                status.innerText = "❌ Erreur. Vérifie ta connexion.";
-                loader.style.display = 'none';
-                captureBtn.style.display = 'inline-block';
-            });
+                .then(() => {
+                    status.innerHTML = "✅ Photo bien reçue ! Merci !";
+                    captureBtn.disabled = false;
+                })
+                .catch(err => {
+                    status.innerText = "❌ Erreur d'envoi.";
+                    captureBtn.disabled = false;
+                });
+            };
         };
-    });
-</script>
+    </script>
+</body>
+</html>
